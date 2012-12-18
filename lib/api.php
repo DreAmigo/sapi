@@ -48,8 +48,7 @@ Class SAPI {
         /*
          * @see http://developers.sensis.com.au/page/category_explorer
          */
-        $searchOnCategories = Symphony::Configuration()->get('api-category', 'sapi');
-        //
+        $searchOnCategories = "&" . trim(Symphony::Configuration()->get('api-category', 'sapi'), "&");
 
         /*
          * Query for the API.
