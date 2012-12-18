@@ -64,7 +64,7 @@ Class SAPI {
             $endpoint = self::ENDPOINT_LIVE;
         }
         
-        $url = $endpoint . "?rows=50&page=". $currentPage ."&query=". $query ."&key=" . self::API_KEY . $searchOnCategories;
+        $url = $endpoint . "?rows=50&page=". $currentPage ."&query=". $query ."&key=" . $apiKey . $searchOnCategories;
         
         # Call the endpoint
         $response = file_get_contents($url); 
