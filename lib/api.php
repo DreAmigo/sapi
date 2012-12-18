@@ -111,6 +111,8 @@ Class SAPI {
         
         // Having the number of pages lets request the results for every single page.
         for ($page = 1; $page <= $totalPages; $page++) {
+            
+            sleep(2); // wait 2 seconds.
 
             // Query results for the $page.
             $query = $this->request($page);
