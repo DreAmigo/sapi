@@ -74,7 +74,7 @@
 				array(
 					'label' => 'API keyword',
 					'name' => 'api-keyword',
-					'value' => $data['api-word'],
+					'value' => $data['api-keyword'],
 					'type' => 'text'
 				)
 			));
@@ -129,9 +129,9 @@
 			$settings = $context['settings'];
 
 			// Active Section
-			Symphony::Configuration()->set('api-username', $settings['sapi']['api-key'], 'sapi');
-			Symphony::Configuration()->set('api-password', $settings['sapi']['api-category'], 'sapi');
-			Symphony::Configuration()->set('api-signature', $settings['sapi']['api-keyword'], 'sapi');
+			Symphony::Configuration()->set('api-key', $settings['sapi']['api-key'], 'sapi');
+			Symphony::Configuration()->set('api-category', $settings['sapi']['api-category'], 'sapi');
+			Symphony::Configuration()->set('api-keyword', $settings['sapi']['api-keyword'], 'sapi');
 			Symphony::Configuration()->set('gateway-mode', $settings['sapi']['gateway-mode'], 'sapi');
 
 			Administration::instance()->saveConfig();
