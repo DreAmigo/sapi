@@ -12,14 +12,14 @@ Class SAPI {
     /*
      * Sandbox endpoint
      */
-    const ENDPOINT_TEST = "http://api.sensis.com.au/ob-20110511/test/search";
+    const ENDPOINT_TEST = "http://api.sensis.com.au/ob-20110511/test/";
     
     /*
      * Live endpoint
      */
-    const ENDPOINT_LIVE = "http://api.sensis.com.au/ob-20110511/prod/search";
+    const ENDPOINT_LIVE = "http://api.sensis.com.au/ob-20110511/prod/";
     
-
+    
     /**
     * Whether or not SAPI is in test mode.
     *
@@ -28,10 +28,57 @@ Class SAPI {
     public static function isTesting() {
         return Symphony::Configuration()->get('gateway-mode', 'sapi') == 'sandbox';
     }
+    
+    /*
+     * API Key
+     * 
+     * @see http://developers.sensis.com.au/
+     */
+    public static function getApiKey() {
+        return Symphony::Configuration()->get('api-key', 'sapi');
+    }
+    
+    /**
+     * 
+     * Function to retrieve a data from SAPI by Listing ID and report a "Reporting Usage Events".
+     * Every time that you retrieve a data from SAPI, you must report to them the appearance.
+     * 
+     * @see http://developers.sensis.com.au/docs/endpoint_reference/Get_by_Listing_ID
+     * @see http://developers.sensis.com.au/docs/read/using_endpoints/Reporting_Usage_Events
+     */
+    public function getByListingId($id, $typeReport = "appearance") {
+        
+        if(self::isTesting()) {
+            $endpoint = self::ENDPOINT_TEST . "getByListingId?key=". $this->getApiKey() ."&query=". $id ."";
+        }
+        else {
+            $endpoint = self::ENDPOINT_LIVE . "getByListingId?key=". $this->getApiKey() ."&query=". $id ."";
+        }
+        
+        # Return the Listing Details.
+        $response = file_get_contents($endpoint); 
+        $result = json_decode($response, true);
+               
+        # Setup a Report Event.  
+        $reportDetails = $typeReport . "?key=". $this->getApiKey() ."&userIp=". $_SERVER['REMOTE_ADDR'] ."&userAgent=". urlencode($_SERVER['HTTP_USER_AGENT']) ."&id=" . $result['results'][0]['reportingId'];
+        
+        if(self::isTesting()) {
+            $sendReport = self::ENDPOINT_TEST . "report/" . $reportDetails;
+        }
+        else {
+            $sendReport = self::ENDPOINT_LIVE . "report/" . $reportDetails;
+        }
+
+        // Send the Report to SAPI.
+        $responseReport = file_get_contents($sendReport); 
+        $resultReport = json_decode($responseReport, true); // In case of we need to save some data from the Report.
+        
+        return $result['results'][0];
+    }
         
     
     /**
-     * Connect to the SAPI API.
+     * Do a request to SAPI API.
      * 
      * @param type $currentPage
      * @return string
@@ -40,21 +87,18 @@ Class SAPI {
     public function request($currentPage = 1) {
         
         /*
-         * API KEY
-         * @see http://developers.sensis.com.au/
-         */
-        $apiKey = Symphony::Configuration()->get('api-key', 'sapi');
-        
-        /*
+         * Search for specific Categories.
+         * 
          * @see http://developers.sensis.com.au/page/category_explorer
          */
-        $searchOnCategories = "&" . trim(Symphony::Configuration()->get('api-category', 'sapi'), "&");
+        $searchOnCategories = Symphony::Configuration()->get('api-category', 'sapi');
 
         /*
          * Query for the API.
+         * 
+         * @see http://developers.sensis.com.au/docs/read/using_endpoints/Category_Filtering
          */
-        $query = Symphony::Configuration()->get('api-keyword', 'sapi');
-        
+        $query = Symphony::Configuration()->get('api-keyword', 'sapi');        
         
         if(self::isTesting()) {
             $endpoint = self::ENDPOINT_TEST;
@@ -63,9 +107,9 @@ Class SAPI {
             $endpoint = self::ENDPOINT_LIVE;
         }
         
-        $url = $endpoint . "?rows=50&page=". $currentPage ."&query=". $query ."&key=" . $apiKey . $searchOnCategories;
+        $url = $endpoint . "search?rows=50&page=". $currentPage ."&query=". $query ."&key=" . $this->getApiKey() . $searchOnCategories;
         
-        # Call the endpoint
+        # Get a response from SAPI.
         $response = file_get_contents($url); 
         
         // Check the response.
@@ -76,11 +120,11 @@ Class SAPI {
         // Convert to json.
         $result = json_decode($response, true);
  
-        # grab the response code
+        # Response code
         $code = $result["code"];
 
-        # ensure successful status code
-        if ($code == 200) { # success
+        # Test response
+        if ($code == 200) { # All good :)
             return $result; 
         } else if ($code == 206) { # spell-checker was run
             echo "Note: " . $result["message"] . "\n";
@@ -111,8 +155,6 @@ Class SAPI {
         
         // Having the number of pages lets request the results for every single page.
         for ($page = 1; $page <= $totalPages; $page++) {
-            
-            sleep(2); // wait 2 seconds.
 
             // Query results for the $page.
             $query = $this->request($page);
@@ -129,7 +171,7 @@ Class SAPI {
                 $addressLine = $result['primaryAddress']['addressLine'];                
                 $description = $result['mediumDescriptor'];
                 
-                // There is in the API primary and secondary contacts.
+                // There are a few contacts returning from the API.
                 $email = array();
                 $url   = array();
                 $phone = array();
