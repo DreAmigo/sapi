@@ -76,14 +76,18 @@ Class SAPI {
         $data = $result['results'][0];
         
         // Look for email and phone number.
-        foreach($data['primaryContacts'] as $key => $contacts) {
-            switch ($contacts['type']) {
-                case "EMAIL":
-                    $email[] = $contacts['value'];
-                break;
-                case "PHONE":
-                    $phone[] = $contacts['value'];
-                break;
+        $phone = array();
+        $email = array();
+        if(isset($data['primaryContacts'])){
+            foreach($data['primaryContacts'] as $key => $contacts) {
+                switch ($contacts['type']) {
+                    case "EMAIL":
+                        $email[] = $contacts['value'];
+                    break;
+                    case "PHONE":
+                        $phone[] = $contacts['value'];
+                    break;
+                }
             }
         }
         
