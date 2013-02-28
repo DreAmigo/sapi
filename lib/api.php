@@ -71,9 +71,33 @@ Class SAPI {
 
         // Send the Report to SAPI.
         $responseReport = file_get_contents($sendReport); 
-        $resultReport = json_decode($responseReport, true); // In case of we need to save some data from the Report.
         
-        return $result['results'][0];
+        // Append to data.
+        $data = $result['results'][0];
+        
+        // Look for email and phone number.
+        foreach($data['primaryContacts'] as $key => $contacts) {
+            switch ($contacts['type']) {
+                case "EMAIL":
+                    $email[] = $contacts['value'];
+                break;
+                case "PHONE":
+                    $phone[] = $contacts['value'];
+                break;
+            }
+        }
+        
+        # Return an array with quick usable data and a raw data as well.
+        $sapiData = array(
+            'name' => $data['name'],
+            'address' => $data['primaryAddress']['addressLine'] . ", " . $data['primaryAddress']['suburb'] . ", " . $data['primaryAddress']['state'] . ", " . $data['primaryAddress']['postcode'],
+            'phone' =>  $phone[0],
+            'email' =>  $email[0],
+            'raw' => $result
+        );
+        
+        return $sapiData;
+        
     }
         
     
