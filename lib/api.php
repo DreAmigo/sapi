@@ -264,7 +264,7 @@ Class SAPI {
     }
     
     /**
-     * Do a search in teh SAPI API.
+     * Do a search in the SAPI API.
      * 
      * @return type
      */
