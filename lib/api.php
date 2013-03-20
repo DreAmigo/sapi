@@ -135,7 +135,7 @@ Class SAPI {
             $endpoint = self::ENDPOINT_LIVE;
         }
         
-        $url = $endpoint . "search?rows=50&page=". $currentPage ."&query=". $query ."&key=" . $this->getApiKey() . $searchOnCategories;
+        $url = $endpoint . "search?rows=50&page=". $currentPage ."&query=". $query ."&key=" . $this->getApiKey() . "&" . trim($searchOnCategories, "&");
         
         # Get a response from SAPI.
         $response = file_get_contents($url); 
